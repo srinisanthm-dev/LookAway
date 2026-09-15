@@ -14,6 +14,9 @@
 		AA00000000000000000025AA /* BreakOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000015AA /* BreakOverlayView.swift */; };
 		AA00000000000000000026AA /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000016AA /* SettingsView.swift */; };
 		AA00000000000000000027AA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000018AA /* Assets.xcassets */; };
+		AA00000000000000000029AA /* MainWindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000019AA /* MainWindowView.swift */; };
+		AA0000000000000000002AAA /* WaterBreakWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000001AAA /* WaterBreakWindow.swift */; };
+		AA0000000000000000002BAA /* WaterBreakOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000001BAA /* WaterBreakOverlayView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +29,9 @@
 		AA00000000000000000016AA /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		AA00000000000000000017AA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA00000000000000000018AA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AA00000000000000000019AA /* MainWindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowView.swift; sourceTree = "<group>"; };
+		AA0000000000000000001AAA /* WaterBreakWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaterBreakWindow.swift; sourceTree = "<group>"; };
+		AA0000000000000000001BAA /* WaterBreakOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaterBreakOverlayView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,6 +70,9 @@
 				AA00000000000000000014AA /* BreakWindow.swift */,
 				AA00000000000000000015AA /* BreakOverlayView.swift */,
 				AA00000000000000000016AA /* SettingsView.swift */,
+				AA00000000000000000019AA /* MainWindowView.swift */,
+				AA0000000000000000001AAA /* WaterBreakWindow.swift */,
+				AA0000000000000000001BAA /* WaterBreakOverlayView.swift */,
 				AA00000000000000000018AA /* Assets.xcassets */,
 				AA00000000000000000017AA /* Info.plist */,
 			);
@@ -145,6 +154,9 @@
 				AA00000000000000000024AA /* BreakWindow.swift in Sources */,
 				AA00000000000000000025AA /* BreakOverlayView.swift in Sources */,
 				AA00000000000000000026AA /* SettingsView.swift in Sources */,
+				AA00000000000000000029AA /* MainWindowView.swift in Sources */,
+				AA0000000000000000002AAA /* WaterBreakWindow.swift in Sources */,
+				AA0000000000000000002BAA /* WaterBreakOverlayView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

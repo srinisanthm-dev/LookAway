@@ -3,170 +3,171 @@ import SwiftUI
 struct BreakOverlayView: View {
     @ObservedObject var timerManager: TimerManager
 
-    @State private var carOffset: CGFloat = -9999   // off-screen until onAppear
-    @State private var carBounce: CGFloat = 0
     @State private var appear = false
+    @State private var moonGlow: Double = 0.35
+    @State private var breatheScale: CGFloat = 0.82
+    @State private var breatheLabel = "Breathe in"
+    @State private var quote: String = EyeCareQuotes.random()
 
     private let stars: [(x: CGFloat, y: CGFloat, r: CGFloat, a: Double)] = [
-        (0.05,0.04,1.2,0.9),(0.12,0.09,0.8,0.7),(0.20,0.03,1.1,0.8),(0.28,0.07,0.5,0.6),
-        (0.37,0.05,1.3,0.9),(0.45,0.10,0.8,0.7),(0.53,0.04,1.1,0.8),(0.62,0.08,0.5,0.6),
-        (0.70,0.03,1.3,0.9),(0.79,0.07,0.8,0.7),(0.87,0.05,1.1,0.8),(0.94,0.09,0.5,0.6),
-        (0.08,0.16,0.8,0.6),(0.17,0.21,1.1,0.8),(0.26,0.14,0.5,0.5),(0.34,0.19,1.3,0.9),
-        (0.43,0.13,0.8,0.7),(0.51,0.20,1.1,0.8),(0.60,0.15,0.5,0.5),(0.68,0.22,1.3,0.9),
-        (0.76,0.17,0.8,0.7),(0.84,0.12,1.1,0.8),(0.92,0.18,0.5,0.6),(0.04,0.28,1.1,0.7),
-        (0.15,0.32,0.8,0.6),(0.25,0.27,1.3,0.9),(0.38,0.30,0.5,0.5),(0.50,0.26,1.1,0.8),
-        (0.63,0.31,0.8,0.7),(0.75,0.28,1.3,0.9),(0.88,0.33,0.5,0.5),(0.02,0.40,0.8,0.6),
+        (0.05,0.04,1.2,0.5),(0.12,0.09,0.8,0.4),(0.20,0.03,1.1,0.45),(0.28,0.07,0.5,0.35),
+        (0.37,0.05,1.3,0.5),(0.45,0.10,0.8,0.4),(0.53,0.04,1.1,0.45),(0.62,0.08,0.5,0.35),
+        (0.70,0.03,1.3,0.5),(0.79,0.07,0.8,0.4),(0.87,0.05,1.1,0.45),(0.94,0.09,0.5,0.35),
+        (0.08,0.16,0.8,0.35),(0.17,0.21,1.1,0.4),(0.26,0.14,0.5,0.3),(0.34,0.19,1.3,0.45),
+        (0.43,0.13,0.8,0.35),(0.51,0.20,1.1,0.4),(0.60,0.15,0.5,0.3),(0.68,0.22,1.3,0.45),
     ]
 
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                nightSky
+                calmSky
+                moonView(geo: geo)
                 starsView(geo: geo)
                 messageView(geo: geo)
-                roadView(geo: geo)
-                carView(geo: geo)
                 buttonsView
             }
             .onAppear {
-                // Snap car to start position (no animation — outside withAnimation block)
-                carOffset = startX(geo)
-                withAnimation(.easeIn(duration: 0.4)) { appear = true }
-                withAnimation(.easeInOut(duration: 0.35).repeatForever(autoreverses: true)) {
-                    carBounce = -6
+                quote = EyeCareQuotes.random()
+                withAnimation(.easeIn(duration: 0.6)) { appear = true }
+                withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) {
+                    moonGlow = 0.55
                 }
-            }
-            // .task is auto-cancelled when the view disappears — safe from use-after-free
-            .task {
-                try? await Task.sleep(nanoseconds: 60_000_000)  // one frame after onAppear
-                guard !Task.isCancelled else { return }
-                withAnimation(.linear(duration: 7).repeatForever(autoreverses: false)) {
-                    carOffset = endX(geo)
-                }
+                runBreathingCycle()
             }
         }
         .opacity(appear ? 1 : 0)
     }
 
-    // MARK: - Helpers
+    // MARK: - Breathing guide (slow, gentle — no sudden motion)
 
-    private func startX(_ geo: GeometryProxy) -> CGFloat { -(geo.size.width * 0.5 + geo.size.width * 0.18) }
-    private func endX(_ geo: GeometryProxy)   -> CGFloat {   geo.size.width * 0.5 + geo.size.width * 0.18  }
+    private func runBreathingCycle() {
+        withAnimation(.easeInOut(duration: 4)) {
+            breatheScale = 1.15
+        }
+        breatheLabel = "Breathe in"
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+            withAnimation(.easeInOut(duration: 4)) {
+                breatheScale = 0.82
+            }
+            breatheLabel = "Breathe out"
+            DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+                runBreathingCycle()
+            }
+        }
+    }
 
     // MARK: - Layers
 
-    private var nightSky: some View {
+    private var calmSky: some View {
         LinearGradient(
             colors: [
-                Color(red:0.03,green:0.02,blue:0.12),
-                Color(red:0.06,green:0.04,blue:0.20),
-                Color(red:0.10,green:0.07,blue:0.28),
-                Color(red:0.14,green:0.10,blue:0.22),
+                Color(red: 0.06, green: 0.06, blue: 0.16),
+                Color(red: 0.10, green: 0.08, blue: 0.22),
+                Color(red: 0.14, green: 0.11, blue: 0.27),
+                Color(red: 0.17, green: 0.13, blue: 0.25),
             ],
             startPoint: .top, endPoint: .bottom
         )
         .ignoresSafeArea()
     }
 
+    private func moonView(geo: GeometryProxy) -> some View {
+        Circle()
+            .fill(Color(red: 0.85, green: 0.86, blue: 0.82).opacity(0.85))
+            .frame(width: 56, height: 56)
+            .shadow(color: Color.white.opacity(moonGlow * 0.35), radius: 26)
+            .position(x: geo.size.width * 0.86, y: geo.size.height * 0.14)
+    }
+
+    /// Gentle, continuous twinkle — each star drifts its own sine wave so the
+    /// sky feels alive without any single motion drawing the eye.
     private func starsView(geo: GeometryProxy) -> some View {
-        ForEach(0..<stars.count, id: \.self) { i in
-            Circle()
-                .fill(Color.white.opacity(stars[i].a))
-                .frame(width: stars[i].r * 2, height: stars[i].r * 2)
-                .position(x: geo.size.width  * stars[i].x,
-                          y: geo.size.height * stars[i].y * 0.65)
+        TimelineView(.animation) { timeline in
+            let t = timeline.date.timeIntervalSinceReferenceDate
+            ForEach(0..<stars.count, id: \.self) { i in
+                let phase = sin(t * 0.5 + Double(i) * 0.9)
+                let twinkle = 0.55 + 0.45 * (phase + 1) / 2
+                Circle()
+                    .fill(Color.white.opacity(stars[i].a * twinkle))
+                    .frame(width: stars[i].r * 2, height: stars[i].r * 2)
+                    .position(x: geo.size.width  * stars[i].x,
+                              y: geo.size.height * stars[i].y * 0.65)
+            }
         }
     }
 
     private func messageView(geo: GeometryProxy) -> some View {
         VStack(spacing: 0) {
-            Spacer(minLength: geo.size.height * 0.07)
+            Spacer(minLength: geo.size.height * 0.09)
 
-            Text("Time to Look Away!")
-                .font(.system(size: min(geo.size.width * 0.042, 58), weight: .bold, design: .rounded))
-                .foregroundColor(.white)
+            Text("Time to Look Away")
+                .font(.system(size: min(geo.size.width * 0.036, 48), weight: .semibold, design: .rounded))
+                .foregroundColor(.white.opacity(0.92))
 
             Text("Focus on something 20 feet away")
-                .font(.system(size: min(geo.size.width * 0.017, 22), weight: .light))
-                .foregroundColor(.white.opacity(0.7))
-                .padding(.top, 10)
+                .font(.system(size: min(geo.size.width * 0.015, 20), weight: .light))
+                .foregroundColor(.white.opacity(0.55))
+                .padding(.top, 8)
 
-            Spacer(minLength: 24)
+            Text(quote)
+                .font(.system(size: min(geo.size.width * 0.014, 18), weight: .medium, design: .rounded))
+                .italic()
+                .foregroundColor(.white.opacity(0.5))
+                .multilineTextAlignment(.center)
+                .padding(.top, 10)
+                .padding(.horizontal, 60)
+
+            Spacer(minLength: 40)
+            breathingCircle
+            Spacer(minLength: 20)
             countdownRing
             Spacer()
         }
         .padding(.horizontal, 40)
     }
 
+    private var breathingCircle: some View {
+        ZStack {
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [Color(red: 0.35, green: 0.55, blue: 0.60).opacity(0.35),
+                                 Color(red: 0.30, green: 0.45, blue: 0.55).opacity(0.05)],
+                        center: .center, startRadius: 4, endRadius: 90
+                    )
+                )
+                .frame(width: 170, height: 170)
+                .scaleEffect(breatheScale)
+
+            Circle()
+                .stroke(Color.white.opacity(0.25), lineWidth: 1.5)
+                .frame(width: 120, height: 120)
+                .scaleEffect(breatheScale)
+
+            Text(breatheLabel)
+                .font(.system(size: 15, weight: .medium, design: .rounded))
+                .foregroundColor(.white.opacity(0.75))
+                .animation(nil, value: breatheLabel)
+        }
+    }
+
     private var countdownRing: some View {
         ZStack {
             Circle()
-                .stroke(Color.white.opacity(0.15), lineWidth: 5)
-                .frame(width: 120, height: 120)
+                .stroke(Color.white.opacity(0.10), lineWidth: 4)
+                .frame(width: 90, height: 90)
             Circle()
                 .trim(from: 0, to: timerManager.breakDuration > 0
                       ? CGFloat(timerManager.breakProgress) : 0)
-                .stroke(Color.white, style: StrokeStyle(lineWidth: 5, lineCap: .round))
-                .frame(width: 120, height: 120)
+                .stroke(Color(red: 0.55, green: 0.75, blue: 0.78).opacity(0.8),
+                        style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                .frame(width: 90, height: 90)
                 .rotationEffect(.degrees(-90))
                 .animation(.linear(duration: 1), value: timerManager.breakTimeRemaining)
             Text("\(Int(timerManager.breakTimeRemaining))")
-                .font(.system(size: 44, weight: .thin, design: .monospaced))
-                .foregroundColor(.white)
+                .font(.system(size: 32, weight: .thin, design: .monospaced))
+                .foregroundColor(.white.opacity(0.85))
         }
-    }
-
-    private func roadView(geo: GeometryProxy) -> some View {
-        let rh = geo.size.height * 0.28
-        return VStack(spacing: 0) {
-            Spacer()
-            ZStack {
-                Rectangle().fill(Color(white: 0.10)).frame(height: rh)
-                VStack {
-                    Rectangle().fill(Color.yellow.opacity(0.55)).frame(height: 3)
-                    Spacer()
-                    Rectangle().fill(Color.white.opacity(0.35)).frame(height: 2)
-                }
-                .frame(height: rh)
-                // Center dashes
-                VStack {
-                    Spacer()
-                    HStack(spacing: 32) {
-                        ForEach(0..<Int(geo.size.width / 80) + 2, id: \.self) { _ in
-                            Rectangle()
-                                .fill(Color.white.opacity(0.45))
-                                .frame(width: 48, height: 4)
-                        }
-                    }
-                    .padding(.bottom, rh * 0.47)
-                }
-                .frame(height: rh)
-            }
-            .frame(height: rh)
-        }
-    }
-
-    private func carView(geo: GeometryProxy) -> some View {
-        let rh  = geo.size.height * 0.28
-        let carW = min(geo.size.width * 0.25, 360)
-        return VStack(spacing: 0) {
-            Spacer()
-            Image(systemName: "car.fill")
-                .resizable()
-                .scaledToFit()
-                .frame(width: carW)
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [Color(red:0.95,green:0.12,blue:0.12),
-                                 Color(red:0.70,green:0.05,blue:0.05)],
-                        startPoint: .top, endPoint: .bottom
-                    )
-                )
-                .shadow(color: .red.opacity(0.45),    radius: 24, x: 0, y: 8)
-                .shadow(color: .orange.opacity(0.25), radius: 40, x: 0, y: 4)
-                .offset(x: carOffset, y: carBounce - rh * 0.42)
-        }
-        .frame(height: geo.size.height)
     }
 
     private var buttonsView: some View {
@@ -184,12 +185,33 @@ struct BreakOverlayView: View {
     private func actionButton(_ label: String, primary: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(label)
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundColor(primary ? .black : .white)
-                .padding(.horizontal, 26)
-                .padding(.vertical, 11)
-                .background(Capsule().fill(primary ? Color.white : Color.white.opacity(0.18)))
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(primary ? Color(red: 0.08, green: 0.14, blue: 0.16) : .white.opacity(0.85))
+                .padding(.horizontal, 24)
+                .padding(.vertical, 10)
+                .background(Capsule().fill(primary ? Color.white.opacity(0.9) : Color.white.opacity(0.10)))
         }
         .buttonStyle(.plain)
+    }
+}
+
+enum EyeCareQuotes {
+    static let all: [String] = [
+        "Your eyes work hardest when you least notice it — give them a moment.",
+        "20 feet away, 20 seconds, and you're good to go.",
+        "A short glance at the horizon resets a long stare at the screen.",
+        "Rest your eyes now so they can carry you through the rest of the day.",
+        "Blink. Breathe. Look away. Repeat.",
+        "The best pixels are the ones you look at less often.",
+        "Even a great view needs a break from being looked at.",
+        "Screens don't blink for you — remember to do it yourself.",
+        "A little distance now prevents a lot of strain later.",
+        "Look far, see clearly, come back sharper.",
+        "Your focus will thank you for this 20-second detour.",
+        "The screen will wait. Your eyes shouldn't have to.",
+    ]
+
+    static func random() -> String {
+        all.randomElement() ?? all[0]
     }
 }

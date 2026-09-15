@@ -6,6 +6,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var statusItem: NSStatusItem!
     private var breakWindows: [BreakWindow] = []
+    private var waterBreakWindows: [WaterBreakWindow] = []
     private var mainWindow: NSWindow?
     private var displayTimer: Timer?
 
@@ -29,7 +30,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         button.image = NSImage(systemSymbolName: "eye", accessibilityDescription: "Look Away")
         button.image?.isTemplate = true
         button.imagePosition = .imageLeft
-        setButtonTitle("20:00", onBreak: false, paused: false)
+        setButtonTitle("20:00", onBreak: false, onWaterBreak: false, paused: false)
 
         let menu = NSMenu()
 
@@ -54,15 +55,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let previewItem = NSMenuItem(title: "Preview Break Screen", action: #selector(previewBreak), keyEquivalent: "b")
         menu.addItem(previewItem)
 
+        let previewWaterItem = NSMenuItem(title: "Preview Water Break", action: #selector(previewWaterBreak), keyEquivalent: "w")
+        menu.addItem(previewWaterItem)
+
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Quit Look Away", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
 
         statusItem.menu = menu
     }
 
-    private func setButtonTitle(_ time: String, onBreak: Bool, paused: Bool) {
+    private func setButtonTitle(_ time: String, onBreak: Bool, onWaterBreak: Bool, paused: Bool) {
         guard let button = statusItem?.button else { return }
-        let prefix = onBreak ? " 👁 " : (paused ? " ⏸ " : " ")
+        let prefix = onWaterBreak ? " 💧 " : (onBreak ? " 👁 " : (paused ? " ⏸ " : " "))
         let attr = NSAttributedString(
             string: "\(prefix)\(time)",
             attributes: [
@@ -83,14 +87,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func refreshDisplay() {
         guard let menu = statusItem?.menu else { return }
 
-        if timerManager.isOnBreak {
+        if timerManager.isOnWaterBreak {
+            let s = Int(timerManager.waterBreakTimeRemaining)
+            let label = "0:\(String(format: "%02d", s))"
+            setButtonTitle(label, onBreak: false, onWaterBreak: true, paused: false)
+            menu.item(withTag: 1)?.title = "Water break! (\(s)s left)"
+        } else if timerManager.isOnBreak {
             let s = Int(timerManager.breakTimeRemaining)
             let label = "0:\(String(format: "%02d", s))"
-            setButtonTitle(label, onBreak: true, paused: false)
+            setButtonTitle(label, onBreak: true, onWaterBreak: false, paused: false)
             menu.item(withTag: 1)?.title = "Break — look away! (\(s)s left)"
         } else {
             let t = timerManager.formattedWorkTime
-            setButtonTitle(t, onBreak: false, paused: !timerManager.isRunning)
+            setButtonTitle(t, onBreak: false, onWaterBreak: false, paused: !timerManager.isRunning)
             menu.item(withTag: 1)?.title = timerManager.isRunning
                 ? "Next break in \(t)"
                 : "Paused — \(t) remaining"
@@ -135,6 +144,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         timerManager.onBreakEnd = { [weak self] in
             DispatchQueue.main.async { self?.dismissBreakOverlay() }
         }
+        timerManager.onWaterBreakStart = { [weak self] in
+            DispatchQueue.main.async { self?.showWaterBreakOverlay() }
+        }
+        timerManager.onWaterBreakEnd = { [weak self] in
+            DispatchQueue.main.async { self?.dismissWaterBreakOverlay() }
+        }
     }
 
     private func showBreakOverlay() {
@@ -158,6 +173,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    private func showWaterBreakOverlay() {
+        guard waterBreakWindows.isEmpty else { return }
+        for screen in NSScreen.screens {
+            let win = WaterBreakWindow(screen: screen, timerManager: timerManager)
+            win.makeKeyAndOrderFront(nil)
+            waterBreakWindows.append(win)
+        }
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    private func dismissWaterBreakOverlay() {
+        let closing = waterBreakWindows
+        waterBreakWindows.removeAll()
+        closing.forEach { $0.orderOut(nil) }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            closing.forEach { $0.close() }
+        }
+    }
+
     // MARK: - Menu Actions
 
     @objc private func togglePause() {
@@ -170,5 +204,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func previewBreak() {
         timerManager.triggerBreak()
+    }
+
+    @objc private func previewWaterBreak() {
+        timerManager.triggerWaterBreak()
     }
 }
