@@ -22,3 +22,6 @@ Package.resolved
 LookAwayBin
 LookAway.app/
 *.app/
+
+# Local build output
+ClIBuild/

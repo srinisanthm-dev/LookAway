@@ -120,15 +120,26 @@ class TimerManager: ObservableObject {
     private func beginBreak() {
         isOnBreak = true
         breakTimeRemaining = breakDuration
-        if soundEnabled {
-            NSSound.beep()
-        }
+        playSound(named: "Glass")
         onBreakStart?()
     }
 
     private func endBreak() {
         isOnBreak = false
         workTimeRemaining = workInterval
+        playSound(named: "Ping")
         onBreakEnd?()
+    }
+
+    /// Plays a named macOS system sound when sound is enabled,
+    /// falling back to the system beep if the sound can't be loaded.
+    private func playSound(named name: String) {
+        guard soundEnabled else { return }
+        if let sound = NSSound(named: NSSound.Name(name)) {
+            sound.stop()
+            sound.play()
+        } else {
+            NSSound.beep()
+        }
     }
 }

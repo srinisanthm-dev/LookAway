@@ -26,7 +26,7 @@ struct SettingsView: View {
             }
 
             Section("Notifications") {
-                Toggle("Play sound at break start", isOn: $timerManager.soundEnabled)
+                Toggle("Play sound at break start and end", isOn: $timerManager.soundEnabled)
             }
 
             Section {
